@@ -1,0 +1,146 @@
+openapi: 3.0.0
+info:
+  title: API Autentikasi dan Otorisasi
+  description: Dokumentasi lengkap untuk API autentikasi dan otorisasi berbasis peran menggunakan JWT.
+  version: 1.0.0
+  contact:
+    name: Pengembang Backend
+    email: developer@example.com
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+
+components:
+  schemas:
+    UserRegistration:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          example: password123
+        role:
+          type: string
+          enum: [user, admin]
+          example: user
+      required:
+        - email
+        - password
+
+    UserLogin:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          example: password123
+      required:
+        - email
+        - password
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /register:
+    post:
+      tags:
+        - Autentikasi
+      summary: Registrasi pengguna baru
+      description: Membuat akun baru untuk user, admin, atau moderator.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User registered successfully
+        '500':
+          description: Registration failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /login:
+    post:
+      tags:
+        - Autentikasi
+      summary: Login pengguna
+      description: Mengautentikasi pengguna dan mengembalikan JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Login successful, returns JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+        '401':
+          description: Invalid email or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /profile:
+    get:
+      tags:
+        - Pengguna
+      summary: Melihat profil pengguna
+      description: Mengambil data profil pengguna yang sedang login. Membutuhkan token autentikasi.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Data profil berhasil diambil
+        '401':
+          description: Akses ditolak karena tidak ada token
+        '403':
+          description: Token tidak valid
+
+  /admin/data:
+    get:
+      tags:
+        - Admin
+      summary: Mengakses data khusus admin
+      description: Route yang hanya bisa diakses oleh pengguna dengan peran 'admin'.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Data admin berhasil diakses
+        '401':
+          description: Akses ditolak karena tidak ada token
+        '403':
+          description: Akses ditolak, hanya untuk admin
