@@ -8,7 +8,7 @@ info:
     email: developer@example.com
 
 servers:
-  - url: http://localhost:3000
+  - url: learnexpressjs-production.up.railway.app
     description: Development server
 
 components:
